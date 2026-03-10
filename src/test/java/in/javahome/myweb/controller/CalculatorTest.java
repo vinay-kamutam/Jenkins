@@ -1,14 +1,27 @@
 package in.javahome.myweb.controller;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class CalculatorTest extends TestCase {
-	Calculator cal = new Calculator();
-	public void testAdd(){
-		Assert.assertEquals(cal.add(10, 20), 30);
-	}
-	public void testMultiply(){
-		Assert.assertEquals(cal.multiply(10, 20), 200);
-	}
+class CalculatorTest {
+    
+    private Calculator calculator;
+    
+    @BeforeEach
+    void setUp() {
+        calculator = new Calculator();
+    }
+    
+    @Test
+    void testAdd() {
+        int result = calculator.add(2, 3);
+        assertEquals(5, result, "2 + 3 should equal 5");
+    }
+    
+    @Test
+    void testSubtract() {
+        int result = calculator.subtract(5, 3);
+        assertEquals(2, result, "5 - 3 should equal 2");
+    }
 }
