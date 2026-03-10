@@ -2,39 +2,54 @@ pipeline {
     agent any
     
     tools {
-        maven 'maven'
+        maven 'maven'  // Must match Global Tool config name
     }
     
     stages {
-        stage('code') {
+        stage('Checkout') {
             steps {
-                git url: 'https://github.com/devopsbyraham/jenkins-java-project.git'
+                git branch: 'main',
+                    url: 'https://github.com/devopsbyraham/jenkins-java-project.git'
             }
         }
-        stage('build') {
+        stage('Build') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean compile'
             }
         }
-        stage('test') {
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
-        }
-        stage('artifact') {
-            steps {
-                sh 'mvn package'
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
             }
         }
-        stage('s3') {
+        stage('Package') {
             steps {
-                s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'artifactbucketfornetflixapp', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: false, selectedRegion: 'ap-south-1', showDirectlyInBrowser: false, sourceFile: 'target/NETFLIX-1.2.2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'raham', userMetadata: []
+                sh 'mvn package -DskipTests'
             }
         }
-        stage('deploy') {
+        stage('S3 Upload') {
             steps {
-                echo "my code is deployed"
+                s3Upload file:'target/*.war',
+                        bucket: 'artifactbucketfornetflixapp',
+                        path: 'netflix/',
+                        region: 'ap-south-1',
+                        credentialsId: 'raham'
             }
+        }
+        stage('Deploy') {
+            steps {
+                echo "Deployed to S3: artifactbucketfornetflixapp/netflix/"
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
